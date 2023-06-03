@@ -126,41 +126,62 @@ UART_INSTANCE = 0
 TX_PIN = 0
 RX_PIN = 1
 BUSY_PIN = 9
-                          
+      
 # Create player instance
 player = DFPlayer(UART_INSTANCE, TX_PIN, RX_PIN, BUSY_PIN)
-    
+
 # Default values
 def_vol = 15
 def_eq = 0
 
 # Iterate by track number
 track_num = 1
-# Start with #1
+folder_num = 1
+# Both varialbes starts with #1
 
 def first_track():
+
     global track_num
+    global folder_num
+
     if player.queryBusy() is False:
         print("nothing is playing, let's change that")
-        player.playTrack(1,track_num)
-        
+        player.playTrack(folder_num,track_num)
 
-def re_run():
+
+# Going through all folders
+
+def next_folder():
+
+    global folder_num
+
+    folder_num += 1
     track_num = 1
-    player.playTrack(1,track_num)
+    player.playTrack(folder_num,track_num)
+    sleep_ms(500)
+    if player.queryBusy() is False:
+            # end of last folder
+            # go to first folder
+            folder_num = 1
+            track_num = 1
+            player.playTrack(folder_num,track_num) 
 
 
 def next_track():
+
     global track_num
-    print('playing next song...')
-    player.playTrack(1,track_num)
+    global folder_num
+
+    print('playing next song')
+    player.playTrack(folder_num,track_num)
     # cheking if we reached last song in folder
     sleep_ms(500)
     if player.queryBusy() is False:
-        # end of folder...restarting from 1 track
-        re_run()    
-    
-    
+        # end of folder
+        next_folder()
+        sleep_ms(500)
+
+
 def pre_main():
     player.setVolume(def_vol)
     player.setEQ(def_vol)
@@ -169,21 +190,14 @@ def pre_main():
 
 
 def main_loop():
-    
     while True:
     
         if player.queryBusy() is False:
             global track_num
             track_num += 1
-            print('next one is coming')
             next_track()
         elif player.queryBusy() is True:
             sleep_ms(100)
-        
+
+
 pre_main()
-
-# add folders support
-
-
-
-
