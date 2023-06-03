@@ -6,9 +6,5 @@ df player mini requrements:
 2. folders should be named 01, 02 etc.
 3. sd card limit is 32 Gb
 
-You can create multiple folder and name them 01, 02 etc.
-In this case you need to modify next_track() functions.
-In this example next_track() is only working in "root" folder - #1.
-
 Features/fixes currently in progress:
 1. add folders support
