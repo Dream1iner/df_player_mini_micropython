@@ -1,30 +1,28 @@
-# df player mini requrements:
-# files should be named 001.mp3, 002.mp3 etc.
-# sd card limit is 32 Gb
-# you can create multiple folder and name them 01, 02 etc.
-# in this case you need to modify next_track() functions
-# in this example next_track() is only working in "root" folder - #1
-
 from utime import sleep_ms, sleep
 from machine import UART, Pin
 from utime import sleep_ms, sleep
 
+
 class DFPlayer():
-    UART_BAUD_RATE=9600
-    UART_BITS=8
-    UART_PARITY=None
-    UART_STOP=1
+    UART_BAUD_RATE = 9600
+    UART_BITS = 8
+    UART_PARITY = None
+    UART_STOP = 1
     
     START_BYTE = 0x7E
     VERSION_BYTE = 0xFF
     COMMAND_LENGTH = 0x06
     ACKNOWLEDGE = 0x01
     END_BYTE = 0xEF
-    COMMAND_LATENCY =   500
+    COMMAND_LATENCY = 500
 
     def __init__(self, uartInstance, txPin, rxPin, busyPin):
-        self.playerBusy=Pin(busyPin, Pin.IN, Pin.PULL_UP)
-        self.uart = UART(uartInstance, baudrate=self.UART_BAUD_RATE, tx=Pin(txPin), rx=Pin(rxPin), bits=self.UART_BITS, parity=self.UART_PARITY, stop=self.UART_STOP)
+        self.playerBusy = Pin(busyPin, Pin.IN, Pin.PULL_UP)
+        self.uart = UART(uartInstance, baudrate = self.UART_BAUD_RATE,
+                         tx = Pin(txPin), rx = Pin(rxPin),
+                         bits = self.UART_BITS,
+                         parity = self.UART_PARITY,
+                         stop = self.UART_STOP)
             
 
     def split(self, num):
@@ -33,7 +31,16 @@ class DFPlayer():
     def sendcmd(self, command, parameter1, parameter2):
         checksum = -(self.VERSION_BYTE + self.COMMAND_LENGTH + command + self.ACKNOWLEDGE + parameter1 + parameter2)
         highByte, lowByte = self.split(checksum)
-        toSend = bytes([b & 0xFF for b in [self.START_BYTE, self.VERSION_BYTE, self.COMMAND_LENGTH, command, self.ACKNOWLEDGE,parameter1, parameter2, highByte, lowByte, self.END_BYTE]])
+        toSend = bytes([b & 0xFF for b in [self.START_BYTE,
+                                           self.VERSION_BYTE,
+                                           self.COMMAND_LENGTH,
+                                           command,
+                                           self.ACKNOWLEDGE,
+                                           parameter1,
+                                           parameter2,
+                                           highByte,
+                                           lowByte,
+                                           self.END_BYTE]])
 
         self.uart.write(toSend)
         sleep_ms(self.COMMAND_LATENCY)
@@ -60,31 +67,31 @@ class DFPlayer():
         self.sendcmd(0x06, 0x00, volume)
 
     def setEQ(self, eq):
-        #eq can be o-5
-        #0=Normal
-        #1=Pop
-        #2=Rock
-        #3=Jazz
-        #4=Classic
-        #5=Base
+        # EQ can be 0-5
+        # 0 = Normal
+        # 1 = Pop
+        # 2 = Rock
+        # 3 = Jazz
+        # 4 = Classic
+        # 5 = Base
 
         self.sendcmd(0x07, 0x00, eq)
 
     def setPlaybackMode(self, mode):
-        #Mode can be 0-3
-        #0=Repeat
-        #1=Folder Repeat
-        #2=Single Repeat
-        #3=Random
+        # Mode can be 0-3
+        # 0 = Repeat
+        # 1 = Folder Repeat
+        # 2 = Single Repeat
+        # 3 = Random
         self.sendcmd(0x08, 0x00, mode)
                                 
     def setPlaybackSource(self, source):
-        #Source can be 0-4
-        #0=U
-        #1=TF
-        #2=AUX
-        #3=SLEEP
-        #4=FLASH
+        # Source can be 0-4
+        # 0 = U
+        # 1 = TF
+        # 2 = AUX
+        # 3 = SLEEP
+        # 4 = FLASH
         self.sendcmd(0x09, 0x00, source)
 
     def standby(self):
@@ -114,33 +121,45 @@ class DFPlayer():
     def init(self, params):
         self.sendcmd(0x3F, 0x00, params)
 
-# Constants. Change these if DFPlayer is connected to other pins.
-UART_INSTANCE=0
+# Constants. Change these if DFPlayer is connected to other pins of PI PICO.
+UART_INSTANCE = 0
 TX_PIN = 0
-RX_PIN=1
-BUSY_PIN=9
+RX_PIN = 1
+BUSY_PIN = 9
                           
 # Create player instance
 player = DFPlayer(UART_INSTANCE, TX_PIN, RX_PIN, BUSY_PIN)
     
 # Default values
 def_vol = 15
-def_eq = 0 
+def_eq = 0
 
 # Iterate by track number
-i = 1
+track_num = 1
+# Start with #1
 
 def first_track():
-    global i
+    global track_num
     if player.queryBusy() is False:
-        print('nothing playing, lets change that')
-        player.playTrack(1,i)
+        print("nothing is playing, let's change that")
+        player.playTrack(1,track_num)
         
-        
+
+def re_run():
+    track_num = 1
+    player.playTrack(1,track_num)
+
+
 def next_track():
-    global i
+    global track_num
     print('playing next song...')
-    player.playTrack(1,i)
+    player.playTrack(1,track_num)
+    # cheking if we reached last song in folder
+    sleep_ms(500)
+    if player.queryBusy() is False:
+        # end of folder...restarting from 1 track
+        re_run()    
+    
     
 def pre_main():
     player.setVolume(def_vol)
@@ -154,11 +173,17 @@ def main_loop():
     while True:
     
         if player.queryBusy() is False:
-            global i
-            i += 1
-            print('next one...')
+            global track_num
+            track_num += 1
+            print('next one is coming')
             next_track()
         elif player.queryBusy() is True:
             sleep_ms(100)
         
 pre_main()
+
+# add folders support
+
+
+
+
