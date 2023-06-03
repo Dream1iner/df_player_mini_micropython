@@ -10,5 +10,4 @@ In this case you need to modify next_track() functions.
 In this example next_track() is only working in "root" folder - #1.
 
 Features/fixes currently in progress:
-  1. issue with not playing after reaching last song in folder
-  2. add folders support
+1. add folders support
