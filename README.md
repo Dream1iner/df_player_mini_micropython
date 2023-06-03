@@ -8,3 +8,7 @@ df player mini requrements:
 You can create multiple folder and name them 01, 02 etc.
 In this case you need to modify next_track() functions.
 In this example next_track() is only working in "root" folder - #1.
+
+Features/fixes currently in progress:
+  1. issue with not playing after reaching last song in folder
+  2. add folders support
