@@ -1,4 +1,4 @@
-# df_player_mini_micropython
+# dfplayer_mini + micropython
 simple example to play .mp3 continuously on df player and pi pico.
 
 Player will go through all folders and all mp3 files on SD card.
